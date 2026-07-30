@@ -1,0 +1,10 @@
+name = "COL 876"
+version = "0.1.0"
+defaultTargets = ["col 876"]
+
+[[lean_lib]]
+name = "«COL 876»"
+
+[[lean_exe]]
+name = "col 876"
+root = "Main"
