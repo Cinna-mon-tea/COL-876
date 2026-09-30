@@ -1,0 +1,77 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage[margin=1in]{geometry}
+
+\newtheorem{theorem}{Theorem}
+
+\title{\vspace{-2em}Formalizing Origami Geometry in Lean 4}
+\author{Manya Kansal}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1em}
+
+\section*{Introduction}
+
+The Huzita-Justin axioms (HJAs) formalise the seven fundamental origami
+fold operations. Unlike just compass-and-straightedge operations, origami operations can solve cubic
+equations via axiom O6 (the Beloch fold) \cite{alperin2000}, enabling constructions such as
+angle trisection. The field of origami-constructible numbers is
+characterised by Alperin's theorem: $z \in \mathbb{R}$ is
+origami-constructible iff it lies in an extension of $\mathbb{Q}$ of
+degree $2^a3^b$. Despite the elegance of these results, no
+machine-verified proof exists.
+
+\section*{Goals}
+
+\begin{enumerate}
+    \item Define terms for folds (\texttt{FoldLine}, \texttt{foldPoint},
+    \texttt{foldLine}) and the HJAs O1--O7 as a synthetic axiomatic
+    system rather than a coordinate system, similar to the SystemE/LeanGeo library \cite{avigad2009}.
+
+    \item Prove basic fold properties: isometry, injectivity, and that
+    the O2 fold line is the perpendicular bisector of the two given points, etc.
+
+    \item Formalize \textbf{Abe's angle trisection} \cite{fuchs2011}:
+    express the construction in terms of HJA axioms, then prove
+    correctness by reducing to the identity
+    $\cos(3\varphi) = 4\cos^3(\varphi) - 3\cos(\varphi)$
+    using Mathlib's trigonometry library.
+
+    \item If time permits, characterize which regular $n$-gons are
+    origami-constructible (those with $\phi(n) = 2^c3^d$).
+\end{enumerate}
+
+\section*{The Plan}
+
+Use a synthetic approach where \texttt{Point} and \texttt{Line} are
+opaque types, following SystemE \cite{avigad2009}. Fold operations are
+new primitives with axioms: involution, isometry, and the fact that fold-line
+points are fixed. The HJAs are existence statements, e.g.\ O2 asserts
+$\exists f,\ \texttt{foldPoint}\ f\ P_1 = P_2$. Correctness of Abe's
+construction follows the arithmetic proof of Fuchs \cite{fuchs2011},
+translated into Lean using Mathlib.
+
+\begin{thebibliography}{9}
+\setlength{\itemsep}{0pt}
+
+\bibitem{avigad2009}
+J.~Avigad, E.~Dean, J.~Mumma,
+``A formal system for Euclid's Elements,''
+\textit{Review of Symbolic Logic}, 2009.
+
+\bibitem{fuchs2011}
+C.~Fuchs,
+``Angle trisection with origami and related topics,''
+\textit{Elemente der Mathematik}, 2011.
+
+\bibitem{alperin2000}
+R.~C.~Alperin, R.~J.~Lang,
+``One-, two-, and multi-fold origami axioms,''
+\textit{Origami}, 2009.
+
+\end{thebibliography}
+
+\end{document}

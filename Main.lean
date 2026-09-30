@@ -1,4 +1,7 @@
-import «COL 876»
+import Mathlib
 
-def main : IO Unit :=
-  IO.println s!"Hello, {hello}!"
+lemma fact1 {p : Prop} :
+    p ∧ ¬ p → False := by
+        simp
+
+

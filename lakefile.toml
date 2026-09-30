@@ -1,10 +1,23 @@
+
 name = "COL 876"
 version = "0.1.0"
 defaultTargets = ["col 876"]
 
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
+
 [[lean_lib]]
 name = "«COL 876»"
+
+[[lean_lib]]
+name = "first"
+
+[[lean_lib]]
+name = "SystemE"
+srcDir = "."
 
 [[lean_exe]]
 name = "col 876"
 root = "Main"
+
