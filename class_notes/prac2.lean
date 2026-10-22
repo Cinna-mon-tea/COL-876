@@ -236,7 +236,7 @@ def ev (n : Nat) : Bool :=
   match n with
   | 0 => true
   | 1 => false
-  | Nat.succ (Nat.succ m) => ev m
+  | .succ (.succ m) => ev m
 
 inductive even : Nat -> Prop where
 | ev_zero : even 0
@@ -269,12 +269,12 @@ theorem evequiv : ∀ (n : Nat), even n ↔ ev n := by
   | case1 => exact even.ev_zero
   | case2 => simp[ev] at h
   | case3 m ih =>
-      have hm : ev m = true := by
-        rw [ev] at h
-        exact h
-      have evenm : even m := by
-        exact ih hm
-      exact even.ev_succ m evenm
+      -- have hm : ev m = true := by
+      --   rw [ev] at h
+      --   assumption
+      -- have even_m : even m := by
+      --   exact ih hm
+      exact even.ev_succ m (by exact ih (by rw [ev] at h; assumption))
 
 -- 17 august
 

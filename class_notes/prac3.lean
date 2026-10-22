@@ -191,7 +191,6 @@ theorem len_sup_long_correct :
       simp at h3 h1
       simp
     | cons hd tl ih =>
-      simp
       sorry
 
 -- 20 august

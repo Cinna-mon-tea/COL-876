@@ -117,7 +117,7 @@ inductive myList (α : Type) where
 
 def myLength (α: Type): List α → Nat
   | List.nil => 0
-  | List.cons hd tl => (myLength α tl) + 1
+  | List.cons _ tl => (myLength α tl) + 1
 
 -- Note that (and you should get a warning about this) the 'hd' in that definition was unnecessary, since it is not even used in how the function is computed for the inductive case -- the inductive definition only depends on the actual value of tl. So we can, and should, remove hd from the left to make this definition clearer in the sense of not being dependent on the value of hd. Since the definition is agnostic to the actual value of hd, we can replace it by a placeholder standing for "any value of the right type", and in Lean, this placeholder is the undescore symbol (_). Since Lean contains an in-built definition of the List type, it also contains an in-built definition of length, which is (unimaginatively) called List.length.
 
@@ -147,4 +147,5 @@ theorem rev_idemp :
 theorem mono_time:
   ∀ d : day, nextDay d ≠ nextDay (nextDay d) :=
   by
-    sorry
+    intro d
+    cases d <;> all_goals simp[nextDay]

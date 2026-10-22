@@ -32,6 +32,8 @@ noncomputable def origamiField : ∀ {x : ℝ}, IsOrigamiConstructible x →
   | _, .cbrt (x := y) hx =>
       origamiField hx ⊔ IntermediateField.adjoin ℚ {y ^ ((1:ℝ)/3)}
 
+-- we need to show that IsOrigamiConstructible is a superset
+-- of all possible operations that can be done using the 7 HJAs
 lemma mem_origamiField {x : ℝ} (hx : IsOrigamiConstructible x) :
     x ∈ origamiField hx := by
   induction hx with
@@ -116,6 +118,33 @@ lemma TwoThree_three : isTwoThree 3 := by
       | zero => contradiction
       | succ k => simp at *; assumption
 
+-- writing a tactic to simplify above proofs
+open Lean Elab Tactic in
+elab "peel " p:ident " with " q:ident : tactic => do
+  evalTactic (← `(tactic| cases' $p:ident with $q:ident))
+  let goals ← getGoals
+  let mut remaining : Array MVarId := #[]
+
+  for g in goals do
+    setGoals [g]
+    let saved ← saveState
+    try
+      evalTactic (← `(tactic| first | contradiction | (simp_all; done)))
+    catch _ =>
+      saved.restore
+      remaining := remaining.push g
+  setGoals remaining.toList
+
+lemma TwoThree_three_simplified : isTwoThree 3 := by
+  intro p hp hpd
+  right
+  have h := Nat.le_of_dvd (by simp) hpd
+  peel p with n
+  peel n with m
+  simp at *
+  have h1 : m ≤ 1 := by omega
+  peel m with k
+
 -- the following 3 are true theorems, not present in MathLib.
 axiom field_comp_divides_prod (K L : IntermediateField ℚ ℝ) :
     Module.finrank ℚ ↥(K ⊔ L) ∣
@@ -187,6 +216,7 @@ theorem Alperin_forward {x : ℝ} (hx : IsOrigamiConstructible x) :
 
 
 -- existence of a 2-3 tower (follows from structure theorem for Abelian groups)
+-- this statement is AI-generated.
 axiom TwoThree_tower (K : IntermediateField ℚ ℝ)
     (hK : isTwoThree (Module.finrank ℚ ↥K)) :
     ∃ (n : ℕ) (tower : Fin (n+1) → IntermediateField ℚ ℝ),
@@ -249,5 +279,7 @@ theorem Alperin_backward (x : ℝ)
     · choose α hαK hL using degree3_is_cbrt (t i.castSucc) (t i.succ)
           (hsteps i).1 h3
       exact cbrt_extension_constructible _ _ α hαK hL ih y hy
-
+-- the proof is still not done: we only showed that the constructions
+-- listed in IsOrigami Constructible can be done by some folds.
+-- But we did now show that every origami construction
 end LeanGeo

@@ -14,6 +14,10 @@ match T with
 | .null => 0
 | .node l r => 1 + max (depth l) (depth r)
 
+inductive isFull : BinTree ->  Prop where
+| empty : isFull BinTree.null
+| Nonempty (hl : isFull l) (hr : isFull r) : isFull (.node l r)
+
 def my_flip (T : BinTree) :=
 match T with
 | .null => BinTree.null
