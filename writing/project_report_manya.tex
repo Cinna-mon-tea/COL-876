@@ -1,0 +1,556 @@
+% Compile with LuaLaTeX so that the Unicode in the Lean listings renders.
+\documentclass{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage[margin=1in]{geometry}
+\usepackage{fontspec}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{needspace}
+\usepackage{titlesec}
+
+% Unicode-capable monospace font for the Lean code (has ℂ ℝ ℚ ∀ ∃ ⟨ ⟩ ∥ ⟂ ⊔ ⊥ ↔ ↥ ...)
+\IfFontExistsTF{DejaVu Sans Mono}{\setmonofont{DejaVu Sans Mono}[Scale=0.88]}
+{\IfFontExistsTF{Menlo}{\setmonofont{Menlo}[Scale=0.88]}{\setmonofont{FreeMono}[Scale=0.95]}}
+% DejaVu Sans Mono lacks U+2225 (∥): typeset it from a font that has it
+\newfontfamily\fbsym{FreeMono}[Scale=0.95]
+% Under LuaLaTeX, listings typesets unknown non-ASCII characters outside its token buffer, which
+% reorders text next to them (e.g. x⁻¹ or {θ : ℝ}). Route every non-ASCII character used in the
+% code through listings' own machinery instead. (∥ is missing from DejaVu Sans Mono: use FreeMono.)
+\makeatletter
+\catcode`α=\active \catcode`θ=\active \catcode`⁻=\active \catcode`ℂ=\active \catcode`ℕ=\active \catcode`ℚ=\active \catcode`ℝ=\active \catcode`→=\active \catcode`↔=\active \catcode`↥=\active \catcode`∀=\active \catcode`∃=\active \catcode`∈=\active \catcode`∉=\active \catcode`∣=\active \catcode`∥=\active \catcode`∧=\active \catcode`∨=\active \catcode`≠=\active \catcode`⊔=\active \catcode`⊥=\active \catcode`⟂=\active \catcode`⟨=\active \catcode`⟩=\active
+\defα{\lst@ProcessOther{{\ttfamily\char945 }}}
+\defθ{\lst@ProcessOther{{\ttfamily\char952 }}}
+\def⁻{\lst@ProcessOther{{\ttfamily\char8315 }}}
+\defℂ{\lst@ProcessOther{{\ttfamily\char8450 }}}
+\defℕ{\lst@ProcessOther{{\ttfamily\char8469 }}}
+\defℚ{\lst@ProcessOther{{\ttfamily\char8474 }}}
+\defℝ{\lst@ProcessOther{{\ttfamily\char8477 }}}
+\def→{\lst@ProcessOther{{\ttfamily\char8594 }}}
+\def↔{\lst@ProcessOther{{\ttfamily\char8596 }}}
+\def↥{\lst@ProcessOther{{\ttfamily\char8613 }}}
+\def∀{\lst@ProcessOther{{\ttfamily\char8704 }}}
+\def∃{\lst@ProcessOther{{\ttfamily\char8707 }}}
+\def∈{\lst@ProcessOther{{\ttfamily\char8712 }}}
+\def∉{\lst@ProcessOther{{\ttfamily\char8713 }}}
+\def∣{\lst@ProcessOther{{\ttfamily\char8739 }}}
+\def∥{\lst@ProcessOther{{\fbsym\char8741 }}}
+\def∧{\lst@ProcessOther{{\ttfamily\char8743 }}}
+\def∨{\lst@ProcessOther{{\ttfamily\char8744 }}}
+\def≠{\lst@ProcessOther{{\ttfamily\char8800 }}}
+\def⊔{\lst@ProcessOther{{\ensuremath{\sqcup}}}}
+\def⊥{\lst@ProcessOther{{\ensuremath{\bot}}}}
+\def⟂{\lst@ProcessOther{{\ensuremath{\perp}}}}
+\def⟨{\lst@ProcessOther{{\ttfamily\char10216 }}}
+\def⟩{\lst@ProcessOther{{\ttfamily\char10217 }}}
+\makeatother
+
+
+
+\newtheorem{theorem}{Theorem}
+
+% ---------- inline Lean names (underscores allowed) ----------
+\newcommand{\lean}[1]{\texttt{\detokenize{#1}}}
+
+% ---------- Lean listings ----------
+\definecolor{leankw}{HTML}{1F4FBF}     % declarations / keywords
+\definecolor{leantac}{HTML}{8E24AA}    % tactics
+\definecolor{leantype}{HTML}{C2570C}   % core types / Prop
+\definecolor{leancom}{HTML}{2E7D32}    % comments
+\definecolor{leanstr}{HTML}{B71C1C}    % strings
+\definecolor{leanbg}{HTML}{F6F7FB}     % background
+\definecolor{leanrule}{HTML}{9FA8DA}   % frame
+
+\lstdefinelanguage{Lean}{
+    morekeywords=[1]{theorem,lemma,def,inductive,structure,mutual,end,namespace,open,import,
+        instance,where,noncomputable,macro,macro_rules,syntax,elab,elab_rules,section,variable,
+        example,by,fun,have,show,from,at,with,in,let,if,then,else,match,using,set,this},
+    morekeywords=[2]{intro,intros,exact,apply,rw,simp,constructor,refine,use,obtain,rcases,
+        cases,induction,linarith,nlinarith,ring,ring_nf,field_simp,grind,positivity,
+        linear_combination,by_cases,by_contra,unfold,exact_mod_cast,omega,first,try,repeat,
+        assumption,left,right,rfl,norm_num,subst,simpa,tactic},
+    morekeywords=[3]{Prop,Type,Sort,Complex,Real,Line},
+    sensitive=true,
+    morecomment=[l]{--},
+    morecomment=[s]{/-}{-/},
+    morestring=[b]",
+}
+
+\lstset{
+    language=Lean,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=[1]\color{leankw}\bfseries,
+    keywordstyle=[2]\color{leantac},
+    keywordstyle=[3]\color{leantype},
+    commentstyle=\color{leancom}\itshape,
+    stringstyle=\color{leanstr},
+    backgroundcolor=\color{leanbg},
+    frame=leftline,
+    framerule=2pt,
+    rulecolor=\color{leanrule},
+    xleftmargin=6pt,
+    framexleftmargin=4pt,
+    columns=fixed,
+    keepspaces=true,
+    showstringspaces=false,
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=2,
+    aboveskip=0.8em,
+    belowskip=0.6em,
+    captionpos=b,
+}
+
+\title{\vspace{-2em}Formalizing Origami Geometry in Lean 4}
+\author{Manya Kansal}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1em}
+% \tableofcontents
+\section{Introduction}
+
+The Huzita-Justin axioms (HJAs) formalise the seven fundamental origami fold operations.
+Unlike just compass-and-straightedge operations, origami operations can solve cubic
+equations via axiom O6 (the Beloch fold) \cite{alperin2000}, enabling constructions such as
+angle trisection. The field of origami-constructible numbers is characterised by Alperin's
+theorem: $z \in \mathbb{R}$ is origami-constructible iff it lies in an extension of
+$\mathbb{Q}$ of degree $2^a3^b$. Despite the elegance of these results,
+no machine-verified proof exists (that I could find).
+
+This report gives an overview of the problem tackled (formalising origami constructibility in
+Lean 4 with Mathlib), the theorems proved, the techniques used, and what I learnt about Lean
+that was not covered in class.
+
+\section{Original Goals}
+
+\begin{enumerate}
+    \item Define terms for folds (\texttt{FoldLine}, \texttt{foldPoint},
+    \texttt{foldLine}) and the HJAs O1--O7 as a synthetic axiomatic
+    system rather than a coordinate system, similar to the SystemE/LeanGeo library \cite{avigad2009}.
+
+    \item Prove basic fold properties: isometry, injectivity, and that
+    the O2 fold line is the perpendicular bisector of the two given points, etc.
+
+    \item Formalize \textbf{Abe's angle trisection} \cite{fuchs2011}:
+    express the construction in terms of HJA axioms, then prove
+    correctness by reducing to the identity
+    $\cos(3\varphi) = 4\cos^3(\varphi) - 3\cos(\varphi)$
+    using Mathlib's trigonometry library.
+
+    \item If time permits, characterize which regular $n$-gons are
+    origami-constructible (those with $\phi(n) = 2^c3^d$).
+\end{enumerate}
+
+\section{Achieved Goals}
+
+\begin{enumerate}
+    \item \textbf{Done.} Lines are a point plus a nonzero direction in $\mathbb{C}$ (\lean{Line});
+    a fold is the reflection \lean{Line.reflect}; O1--O7 are predicates; constructible points and
+    lines form a mutual inductive type. This is an inductive system inside $\mathbb{C}$, not a
+    SystemE-style synthetic one.
+
+    \item \textbf{Done.} \lean{reflect_dist_sq} (isometry), \lean{reflect_reflect} (involution,
+    hence injective), \lean{reflect_eq_self_iff} (fixed points are exactly the crease),
+    \lean{reflect_bisector} and \lean{o2_eq} (the O2 fold line is the perpendicular bisector).
+
+    \item \textbf{Done.} Proved the Beloch fold (\lean{beloch_fold}), that O6 constructs
+    every real root of a cubic with constructible coefficients (\lean{cpt_cubic}), and the
+    trisection identity (\lean{trisect_cos}). Abe's fold sequence itself is not written out as an
+    explicit HJA construction.
+
+    \item \textbf{Partly done.} The characterisation of regular $n$-gons itself is not proved,
+    but the main field-theoretic result it rests on is: \lean{OCField} is a field,
+    \lean{alperin} characterises the constructible numbers as those lying in a cubic tower, and
+    \lean{origami_degree} shows that their degree is of the form $2^a3^b$.
+
+    \item Beyond the original goals, I proved the algebra--geometry equivalence (soundness and completeness).
+\end{enumerate}
+
+\section{Design Decisions}
+\label{sec:design}
+
+\subsection{Why Complex Coordinates}
+I initially defined all the predicates synthetically, similar to \texttt{LeanGeo}.
+However, that would need too many axioms to be stated by hand, possibly leading to
+contradictions. Also, it was harder to write general tactics for synthetic proofs. As a result,
+complex coordinates are used.
+
+\subsection{Membership Through Conjugation}
+A point $z$ lies on the line through $p$ with direction $d$ exactly when $z-p$ is a real multiple
+of $d$, i.e.\ when $(z-p)\,\overline{d}$ is a real number. This is why membership is defined as
+\lean{((z - l.p) * conj l.d).im = 0}, which is equivalent to:
+\begin{lstlisting}
+theorem mem_iff_conj (l : Line) (z : ℂ) :
+    z ∈ l ↔ (z - l.p) * conj l.d = conj (z - l.p) * l.d := by ...
+\end{lstlisting}
+It needs no division and no special case for vertical lines, unlike writing a line as 
+$y=mx+c$ or solving for a parameter $t$ in $z=p+td$. Parallelism and perpendicularity use 
+the same idea: \lean{Par} asks that $d\,\overline{d'}$ is real
+and \lean{Perp} asks that it is purely imaginary.
+
+\subsection{Why a Line Carries a Proof That Its Direction is Nonzero}
+If $d=0$, then $(z-p)\,\overline{d}=0$ for every $z$, so the ``line'' would contain every point of
+the plane. Also, \lean{reflect} divides by \lean{conj d}. Putting the proof \lean{hd} inside 
+the structure means that no theorem needs \lean{d ≠ 0} as an extra hypothesis, and lemmas 
+such as \lean{Line.d_re_or_im} can use it directly.
+
+\subsection{Why \texttt{Same} is a Setoid}
+The same geometric line has many representations: any point on it can be the base point $p$, and
+$d$ can be scaled by a nonzero real number. \lean{Same l m} says that $l$ and $m$ are parallel and
+that \lean{l.p} lies on $m$. This relation is reflexive, symmetric and transitive
+(\lean{par_refl} and \lean{mem_self}, \lean{same_symm}, \lean{same_trans}), so it is an
+equivalence relation, and it is registered as a \lean{Setoid} instance. It is also the reason
+\lean{GeoConstrLine} has the constructor \lean{same}: constructibility must not depend on which
+representation of a line is used. The following proofs benefit from this:
+\begin{lstlisting}
+theorem par_refl (l : Line) : geo{l ∥ l} := by ...
+theorem same_symm {l m : Line} (h : l.Same m) : m.Same l := by ...
+theorem same_trans {l m n : Line} (h1 : l.Same m) (h2 : m.Same n) : l.Same n := by ...
+\end{lstlisting}
+
+\section{The Structure of the Project}
+\label{sec:structure}
+Points are complex numbers and lines are defined by a point (a complex number which it passes
+through) and a direction (a nonzero complex number in the direction of the line), along with a
+proof that the direction is nonzero. Membership, parallelism and reflection are all expressed
+with complex conjugation.
+\begin{lstlisting}
+structure Line where
+    p : ℂ
+    d : ℂ
+    hd : d ≠ 0
+
+instance : Membership ℂ Line where
+  mem l z := ((z - l.p) * conj l.d).im = 0
+
+def Par  (l m : Line) : Prop := (l.d * conj m.d).im = 0
+def Perp (l m : Line) : Prop := (l.d * conj m.d).re = 0
+def Same (l m : Line) : Prop := Par l m ∧ l.p ∈ m
+noncomputable def reflect (f : Line) (z : ℂ) : ℂ :=
+  f.p + (f.d / conj f.d) * conj (z - f.p)
+\end{lstlisting}
+There are 2 components to the project: the algebra-geometry equivalence
+and the algebraic characterisation of origami-constructible numbers.
+
+\subsection{The Algebra-Geometry Equivalence}
+\label{sec:alg-geo-eq}
+A point is Geometrically constructible if it is \(0\), \(1\), an intersection of two origami-constructible
+lines, or the reflection of an origami-constructible point in an origami-constructible line.
+A line is origami-constructible if it is constructible by one of the \(7\) HJAs.
+The \texttt{geo\{\dots\}} notation is a small custom syntax category for $\parallel$, $\perp$
+and $\equiv$. In Lean, I defined these as:
+\begin{lstlisting}
+def O1 (p q : ℂ) (f : Line) : Prop := p ∈ f ∧ q ∈ f
+def O2 (p q : ℂ) (f : Line) : Prop := f.reflect p = q
+def O3 (l m f : Line) : Prop := (f.reflectLine l).Same m
+def O4 (p : ℂ) (l f : Line) : Prop := geo{ f ⟂ l ∧ p ∈ f }
+def O5 (p q : ℂ) (l f : Line) : Prop := f.reflect p ∈ l ∧ q ∈ f
+def O6 (p q : ℂ) (l m f : Line) : Prop := f.reflect p ∈ l ∧ f.reflect q ∈ m
+def O7 (p : ℂ) (l m f : Line) : Prop := geo{ f ⟂ m ∧ (f.reflect p) ∈ l }
+
+mutual
+inductive GeoConstrPt : ℂ → Prop
+| zero : GeoConstrPt 0
+| one  : GeoConstrPt 1
+| inter {l m : Line} {z : ℂ} : GeoConstrLine l → GeoConstrLine m → ¬ l.Par m → z ∈ l → z ∈ m → GeoConstrPt z
+| reflect {p : ℂ} {f : Line} : GeoConstrPt p → GeoConstrLine f → GeoConstrPt (f.reflect p)
+
+inductive GeoConstrLine : Line → Prop
+| o1 {p q : ℂ} {f : Line} :         -- line through p and q
+    GeoConstrPt p → GeoConstrPt q → p ≠ q → O1 p q f → GeoConstrLine f
+| o2 {p q : ℂ} {f : Line} :         -- line sending p to q
+    GeoConstrPt p → GeoConstrPt q → p ≠ q → O2 p q f → GeoConstrLine f
+| o3 {l m f : Line} :               -- angle bisector
+    GeoConstrLine l → GeoConstrLine m → ¬ l.Same m → O3 l m f → GeoConstrLine f
+| o4 {p : ℂ} {l f : Line} :         -- line perpendicular to l through p
+    GeoConstrPt p → GeoConstrLine l → O4 p l f → GeoConstrLine f
+| o5 {p q : ℂ} {l f : Line} :       -- line sending p to l, passing through q
+    GeoConstrPt p → GeoConstrPt q → GeoConstrLine l → p ≠ q → O5 p q l f → GeoConstrLine f
+| o6 {p q : ℂ} {l m f : Line} :     -- line sending p to l and q to m
+    GeoConstrPt p → GeoConstrPt q → GeoConstrLine l → GeoConstrLine m → p ∉ l → ¬ geo{l ∥ m} →
+    O6 p q l m f → GeoConstrLine f
+| o7 {p : ℂ} {l m f : Line} :       -- line sending p to l, perpendicular to m
+    GeoConstrPt p → GeoConstrLine l → GeoConstrLine m → ¬ geo{l ∥ m} → O7 p l m f → GeoConstrLine f
+| same {f g : Line} : GeoConstrLine f → f.Same g → GeoConstrLine g
+end
+\end{lstlisting}
+A number is Algebraically constructible if it lies in the set of numbers containing \(0\) and \(1\),
+which is closed under addition, multiplication, additive and multiplicative inverses, and taking
+square roots and cube roots. In Lean, I defined it as:
+\begin{lstlisting}
+inductive AlgConstrNum : ℝ → Prop
+| rat (q : ℚ) : AlgConstrNum q
+| add {x y} : AlgConstrNum x → AlgConstrNum y → AlgConstrNum (x + y)
+| mul {x y} : AlgConstrNum x → AlgConstrNum y → AlgConstrNum (x * y)
+| neg {x} : AlgConstrNum x → AlgConstrNum (-x)
+| inv {x} : AlgConstrNum x → AlgConstrNum x⁻¹
+| sqrt {x} : AlgConstrNum x → AlgConstrNum (Real.sqrt x)
+| cubic {a b c r : ℝ} : AlgConstrNum a → AlgConstrNum b → AlgConstrNum c →
+    r ^ 3 + a * r ^ 2 + b * r + c = 0 → AlgConstrNum r
+
+def AlgConstrLine (f : Line) : Prop :=
+    ∃ a b c : ℝ, AlgConstrNum a ∧ AlgConstrNum b ∧ AlgConstrNum c ∧ (a ≠ 0 ∨ b ≠ 0) ∧
+        ∀ z : ℂ, z ∈ f ↔ a * z.re + b * z.im + c = 0
+\end{lstlisting}
+The corresponding equivalence theorems are:
+\begin{lstlisting}
+theorem GeoConstrPt_iff (z : ℂ) : GeoConstrPt z ↔ AlgConstrNum z.re ∧ AlgConstrNum z.im :=
+    ⟨sound_pt, complete_pt⟩
+
+theorem GeoConstrLine_iff (f : Line) : GeoConstrLine f ↔ AlgConstrLine f :=
+    ⟨sound_line, complete_line⟩
+\end{lstlisting}
+
+\subsubsection{Soundness (geometric $\Rightarrow$ algebraic)}
+\label{sec:soundness}
+Each axiom is translated into coordinates, giving one lemma per axiom (\lean{o1_aux}, \dots,
+\lean{o7_aux}). The proof uses \texttt{mutual} recursion, similar to its \texttt{mutual} definition.
+\begin{lstlisting}
+mutual
+theorem sound_pt : ∀ {z : ℂ}, GeoConstrPt z → AlgConstrNum z.re ∧ AlgConstrNum z.im
+| _, .zero => by simp [AlgConstrNum.zero]
+| _, .one => by simp [AlgConstrNum.one, AlgConstrNum.zero]
+| _, .inter hl hm hn hzl hzm => inter_aux (sound_line hl) (sound_line hm) hn hzl hzm
+| _, .reflect hp hf => reflect_aux (sound_pt hp) (sound_line hf)
+
+theorem sound_line : ∀ {f : Line}, GeoConstrLine f → AlgConstrLine f
+| _, .o1 hp hq hne h => o1_aux (sound_pt hp) (sound_pt hq) hne h
+-- o2 ... o6 are analogous
+| _, .o7 hp hl hm hlm h => o7_aux (sound_pt hp) (sound_line hl) (sound_line hm) hlm h
+| _, .same hf he => by ...
+end
+\end{lstlisting}
+
+\subsubsection{Completeness (algebraic $\Rightarrow$ geometric)}
+I first construct the axes and the operations $+,-,\times,{}^{-1}$ (multiplicative inverse) on the $x$-axis by folds
+(\lean{cpt_add}, \lean{cpt_mul}, \lean{cpt_inv}), then \lean{cpt_mk} builds $u+vi$ from $u$
+and $v$. Cubic roots use the Beloch fold, and square roots come for free because $\sqrt a$ is a
+root of $t^3-at=0$.
+\begin{lstlisting}
+theorem beloch_fold {t a b c : ℝ} (h : t ^ 3 + a * t ^ 2 + b * t + c = 0)
+    (T : ℂ) (hTre : T.re = 1 - b) (hTim : T.im = a - c) :
+    ((bfold t).reflect 0).re = 2 ∧ ((bfold t).reflect T).im = a + c := by ...
+
+theorem cpt_cubic {a b c r : ℝ} (ha : RC a) (hb : RC b) (hc : RC c)
+    (h : r ^ 3 + a * r ^ 2 + b * r + c = 0) : GeoConstrPt r := by ...
+
+theorem cpt_sqrt {a : ℝ} (ha : RC a) : RC (Real.sqrt a) := by ...
+\end{lstlisting}
+\subsection{The Algebraic Characterisation}
+Alperin's Theorem~\cite{alperin2000,lee2017} states that a real number is origami-constructible if
+and only if it lies in an algebraic extension of $\mathbb{Q}$ built by adjoining roots of cubics.
+The constructible numbers form a subfield \lean{OCField} of $\mathbb{R}$ containing $\mathbb{Q}$.
+\lean{Reach K} says $K$ is built from $\mathbb{Q}$ by adjoining roots of cubics one at a time,
+and \lean{alperin} shows a number is constructible iff it lies in such a $K$.
+Each step of a \lean{Reach} tower has degree 1, 2 or 3 (\lean{finrank_step}, via the tower law), so
+$[\mathbb{Q}(x):\mathbb{Q}]$ is of the form $2^a3^b$ (\lean{origami_degree}).
+\begin{lstlisting}
+inductive Reach : IntermediateField ℚ ℝ → Prop
+| bot : Reach ⊥
+| step {K : IntermediateField ℚ ℝ} {α a b c : ℝ} :
+    Reach K → a ∈ K → b ∈ K → c ∈ K →
+    α ^ 3 + a * α ^ 2 + b * α + c = 0 →
+    Reach (K ⊔ IntermediateField.adjoin ℚ {α})
+
+theorem alperin {x : ℝ} : AlgConstrNum x ↔ ∃ K, Reach K ∧ x ∈ K := by ...
+
+def isTwoThree (n : ℕ) : Prop := ∀ p, p.Prime → p|n → p = 2 ∨ p = 3
+
+theorem origami_degree {x : ℝ} (h : AlgConstrNum x) :
+    isTwoThree (Module.finrank ℚ ↥(IntermediateField.adjoin ℚ {x})) := by ...
+\end{lstlisting}
+\subsection{Angle Trisection}
+If $\cos\theta$ is constructible then so is $\cos(\theta/3)$. Mathlib's \lean{Real.cos_three_mul}
+shows $x=\cos(\theta/3)$ is a root of $x^3-\tfrac34x-\tfrac14\cos\theta=0$, so the cubic rule
+applies.
+\begin{lstlisting}
+theorem trisect_cos {θ : ℝ} (h : AlgConstrNum (Real.cos θ)) : AlgConstrNum (Real.cos (θ / 3)) := by
+    have h3 := Real.cos_three_mul (θ / 3)
+    have : 3 * (θ / 3) = θ := by linarith
+    rw [this] at h3
+    refine AlgConstrNum.cubic (a := 0) (b := -3 / 4) (c := -Real.cos θ / 4)
+        AlgConstrNum.zero (by is_oc) (by is_oc) ?_
+    linear_combination (-1 / 4) * h3
+\end{lstlisting}
+
+\section{Techniques Used}
+\begin{itemize}
+    \item \textbf{Reduction to coordinates:} rewriting $\mathbb{C}$-valued statements into real and
+    imaginary parts (\lean{to_re_im}) so that real arithmetic closes the goal. Conjugation is
+    handled separately by \lean{conj_simp}, which pushes \lean{conj} through sums, products and
+    quotients, so that many goals can be closed without leaving $\mathbb{C}$ at all.
+    
+    \item \textbf{Algebraic closers:} \lean{linear_combination}, \lean{field_simp},
+    \lean{positivity}, \lean{nlinarith}, \lean{grind}. Most geometric facts become polynomial
+    identities once the coordinates are expanded. \lean{field_simp} clears denominators (using
+    the nonzero-direction facts), and \lean{ring}, \lean{linear_combination} or \lean{nlinarith}
+    finish the goal; \lean{grind} handles the case splits and the small inequalities.
+    
+    \item \textbf{Custom tactics:} \lean{is_oc} and \lean{rc} (closure side-goals),
+    \lean{line_facts}, \lean{cancel_dir}, \lean{extract_all_points}. The tactic \lean{line_facts}
+    is an \lean{elab} that scans the context for every \lean{Line} and adds the facts that are
+    needed every time (\lean{d != 0}, \lean{normSq d > 0}, and so on). The tactic
+    \lean{line_unfold} unfolds the definitions of membership, \lean{Par}, \lean{Perp},
+    \lean{Same} and the reflections. These are combined into one tactic, \lean{line_auto}, which
+    tries several pipelines in turn.
+    
+    \item \textbf{Automation with fallbacks:} \lean{line_auto} and \lean{line_arith} use
+    \lean{first | ... | ...}, so one macro covers many different goals, and the first pipeline that
+    works is used. This removed most of the repeated boilerplate from the proofs of the
+    individual folds.
+    
+    \item \textbf{Case analysis on directions:} since a \lean{Line} carries a proof that its
+    direction is nonzero, either the real or the imaginary part is nonzero. \lean{cancel_dir}
+    splits on this and cancels the nonzero factor from both sides of an equation.
+    
+    \item \textbf{Reduction of O6 to a cubic:} the Beloch fold is handled by showing that a number
+    is constructible whenever it is a root of a cubic whose coefficients are constructible
+    (\lean{AlgConstrNum.of_cubic_fn}). Both the soundness and the completeness of O6 reduce to
+    this one lemma.
+    
+    \item \textbf{Mathlib field theory:} There are in-built structures and functions \lean{IntermediateField}, 
+    \lean{adjoin}, \lean{minpoly} and the tower law \lean{Module.finrank_mul_finrank} for the degree bound. 
+    Alperin's necessary condition is proved by induction on the construction: each step adjoins 
+    a root of a cubic, so it multiplies the degree by a factor of at most 3 (or exactly 2, for a quadratic).
+\end{itemize}
+
+\section{Things that I learnt, that were not taught in class.}
+
+\subsection{The \texttt{refine} Tactic}
+\texttt{refine} is similar to \texttt{exact}, but \lean{?_} marks the parts that have not yet
+been proved and they become new goals. It lets us supply some arguments of a theorem and turn
+the rest into goals. For example, in \lean{o1_aux} the witnesses of the existential goal are
+chosen with \lean{use}, and \lean{refine} then proves four of the five conditions on the spot
+and leaves only the last one as a new goal:
+\begin{lstlisting}
+use -(q.im - p.im), q.re - p.re, (q.im - p.im) * p.re - (q.re - p.re) * p.im
+refine ⟨by is_oc, by is_oc, by is_oc, by grind, ?_⟩
+-- remaining goal: ∀ z : ℂ, z ∈ f ↔ a * z.re + b * z.im + c = 0
+\end{lstlisting}
+and for lemmas with many arguments, as in \lean{o6_core}, where \lean{refine} names one argument
+with \lean{(G := G)}, fills in the easy ones directly, and leaves four goals (the cubic identity
+for \lean{G} and the constructibility of \lean{G 0}, \lean{G 1}, \lean{G (-1)}), which are then
+closed one by one with `\lean{·}' per goal:
+\begin{lstlisting}
+have hsI : AlgConstrNum (-b1 * P + a1 * Q) := by
+    refine AlgConstrNum.of_cubic_fn (G := G)
+        (c3 := (a1 * b2 - a2 * b1) * (a1 ^ 2 + b1 ^ 2) * ((a1 ^ 2 + b1 ^ 2)⁻¹) ^ 3)
+        (mul_ne_zero (mul_ne_zero hD hN) (pow_ne_zero 3 hw)) (by is_oc) ?_ ?_ ?_ ?_ hs
+    · intro x
+        rw [hG x, hG 1, hG (-1), hG 0]
+        unfold O6poly
+        ring
+    · rw [hG]; unfold O6poly; is_oc
+    · rw [hG]; unfold O6poly; is_oc
+    · rw [hG]; unfold O6poly; is_oc
+\end{lstlisting}
+
+\subsection{\texttt{mutual} Recursive Definitions}
+Constructible points and lines use each other in their definitions, so they are declared in a
+\lean{mutual} block\ref{sec:alg-geo-eq}. Proofs about them\ref{sec:soundness} are also written
+as mutual theorems with pattern matching on the constructors; as far as I found,
+the \lean{induction} tactic does not handle this case directly.
+
+\subsection{Setoids}
+A \lean{Setoid} is a type together with an equivalence relation on it, bundled as one structure:
+a relation \lean{r} and a proof \lean{iseqv} that \lean{r} is reflexive, symmetric and transitive.
+Once the instance is declared, Lean treats \lean{r} as the default notion of ``being the same'' on
+that type: $a \approx b$ means \lean{r a b}, and it becomes possible to form the quotient type,
+whose elements are the equivalence classes. In my project, \lean{Line.Same} is the relation,
+and the three proofs are those of \lean{par_refl}/\lean{mem_self}, \lean{same_symm} and
+\lean{same_trans} (see Section~\ref{sec:design}):
+\begin{lstlisting}
+instance : Setoid Line where
+  r := Line.Same
+  iseqv := ⟨fun l => ⟨par_refl l, mem_self l⟩, same_symm, same_trans⟩
+\end{lstlisting}
+
+\subsection{Writing My Own Tactics and Syntax}
+Tactics allowed cleaner proofs and reduced the amount of hand-computation required:
+\lean{macro_rules} can call themselves and recurse through a term to prove \lean{AlgConstrNum}
+goals (\lean{is_oc}); \lean{elab} with Lean's metaprogramming loops over the local context
+to add facts about every \lean{Line} (\lean{line_facts}). A \lean{declare_syntax_cat} gave
+the \lean{geo{...}} notation.
+\begin{lstlisting}
+syntax "is_oc_core" : tactic
+macro_rules
+    | `(tactic| is_oc_core) => `(tactic| first
+        | assumption
+        | exact AlgConstrNum.zero
+        | (apply AlgConstrNum.add <;> is_oc_core)
+        | (apply AlgConstrNum.mul <;> is_oc_core)
+        | (apply AlgConstrNum.sqrt; is_oc_core))
+
+macro "is_oc" : tactic => `(tactic| (try casesm* _ ∧ _) <;> is_oc_core)
+\end{lstlisting}
+
+\subsection{Mathlib's Field Theory and Automation}
+Working with \lean{IntermediateField} needed \lean{restrictScalars}/\lean{extendScalars} to move
+between $\mathbb{Q}$- and $K$-structures. Naming implicit arguments with \lean{@} in an
+\lean{induction ... with} case, and building witnesses with
+\lean{obtain ⟨x, hx⟩ : ∃ x, ... := ⟨_, _⟩}, were also new to me.
+
+\subsection{How bad Claude is at writing short proofs}
+AI suggestions for proofs were often unnecessarily wrong (lemma names that do not exist, tactics
+that do not close the goal), so I treated them as hints and tried to write short proofs myself
+whenever possible. The funniest example of this was in \lean{o3_eq}, where Claude told me to
+first prove the following lemma, relating the sign of $u_1+u_2$ to a sign $s_0$:
+\begin{lstlisting}
+theorem sign_sum {u1 u2 s0 : ℝ} (hs0 : s0 = 1 ∨ s0 = -1)
+    (h1 : (u1 > 0 → s0 = 1) ∧ (u1 < 0 → s0 = -1))
+    (h2 : (u2 > 0 → s0 = 1) ∧ (u2 < 0 → s0 = -1))
+    (hne : u1 ≠ 0 ∨ u2 ≠ 0) :
+    (if u1 + u2 > 0 then (1 : ℝ) else -1) = s0 := by
+    rcases hs0 with rfl | rfl
+    · have a : 0 ≤ u1 := by
+        by_contra h; push_neg at h; have := h1.2 h; norm_num at this
+        have b : 0 ≤ u2 := by
+        by_contra h; push_neg at h; have := h2.2 h; norm_num at this
+        have hsum : 0 < u1 + u2 := by
+        rcases hne with h | h
+        · have := lt_of_le_of_ne a (Ne.symm h); linarith
+        · have := lt_of_le_of_ne b (Ne.symm h); linarith
+        rw [if_pos hsum]
+    · have a : u1 ≤ 0 := by
+        by_contra h; push_neg at h; have := h1.1 h; norm_num at this
+        have b : u2 ≤ 0 := by
+        by_contra h; push_neg at h; have := h2.1 h; norm_num at this
+        have hsum : u1 + u2 < 0 := by
+        rcases hne with h | h
+        · have := lt_of_le_of_ne a h; linarith
+        · have := lt_of_le_of_ne b h; linarith
+        rw [if_neg (not_lt.2 hsum.le)]
+\end{lstlisting}
+whereas the corresponding step in my proof is closed by a single line:
+\begin{lstlisting}
+· by_cases h : (s1 + s2 > 0) <;> simp [h, s3]
+\end{lstlisting}
+
+\begin{thebibliography}{9}
+\setlength{\itemsep}{0pt}
+
+\bibitem{avigad2009}
+J.~Avigad, E.~Dean, J.~Mumma,
+``A formal system for Euclid's Elements,''
+\textit{Review of Symbolic Logic}, 2009.
+
+\bibitem{fuchs2011}
+C.~Fuchs,
+``Angle trisection with origami and related topics,''
+\textit{Elemente der Mathematik}, 2011.
+
+\bibitem{alperin2000}
+R.~C.~Alperin, R.~J.~Lang,
+``One-, two-, and multi-fold origami axioms,''
+\textit{Origami}, 2009.
+
+\bibitem{lee2017}
+H.~Y.~Lee,
+``Origami-constructible numbers,''
+Master's thesis, University of Georgia, 2017.
+
+\end{thebibliography}
+
+\end{document}
